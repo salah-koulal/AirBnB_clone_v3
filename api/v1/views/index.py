@@ -24,8 +24,7 @@ data = {"amenities": amenities_,
         "places": places_,
         "reviews": reviews_,
         "states": states_,
-        "users": users_
-        }
+        "users": users_}
 
 
 @app_views.route('/status', methods=["GET"])
