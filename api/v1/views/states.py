@@ -64,26 +64,15 @@ def post_state():
         return jsonify(state.to_dict()), 201
 
 
-@app_views.route('/states/<string:state_id>',
-                 methods=['PUT'], strict_slashes=False)
-def put_state(state_id):
-    """updates state"""
-    states = storage.all(State)
-    try:
-        key = 'State.' + state_id
-        state = states[key]
-        if not request.is_json:
-            abort(400, 'Not a JSON')
-        else:
-            request_body = request.get_json()
-
-        for key, value in request_body.items():
-            if key != 'id' and key != 'created_at' and key != 'updated_at':
-                setattr(state, key, value)
-        storage.save
-        return jsonify(state.to_dict()), 200
-
-    except KeyError:
+@app_views.route("/states/<state_id>", strict_slashes=False, methods=["PUT"])
+def update_state(state_id):
+    """update state"""
+    obj = storage.get(State, state_id)
+    if obj is None:
         abort(404)
-
-    abort(501)
+    data = request.get_json(force=True, silent=True)
+    if not data:
+        abort(400, "Not a JSON")
+    obj.name = data.get("name", obj.name)
+    obj.save()
+    return jsonify(obj.to_dict()), 200
