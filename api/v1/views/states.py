@@ -64,15 +64,21 @@ def post_state():
         return jsonify(state.to_dict()), 201
 
 
-@app_views.route("/states/<state_id>", strict_slashes=False, methods=["PUT"])
-def update_state(state_id):
-    """update state"""
-    obj = storage.get(State, state_id)
-    if obj is None:
+@app_views.route("/states/<state_id>",  methods=["PUT"], strict_slashes=False)
+def state_put(state_id):
+    """
+    updates specific State object by ID
+    :param state_id: state object ID
+    :return: state object and 200 on success, or 400 or 404 on failure
+    """
+    state_json = request.get_json(silent=True)
+    if state_json is None:
+        abort(400, 'Not a JSON')
+    fetched_obj = storage.get("State", str(state_id))
+    if fetched_obj is None:
         abort(404)
-    data = request.get_json(force=True, silent=True)
-    if not data:
-        abort(400, "Not a JSON")
-    obj.name = data.get("name", obj.name)
-    obj.save()
-    return jsonify(obj.to_dict()), 200
+    for key, val in state_json.items():
+        if key not in ["id", "created_at", "updated_at"]:
+            setattr(fetched_obj, key, val)
+    fetched_obj.save()
+    return jsonify(fetched_obj.to_json())
